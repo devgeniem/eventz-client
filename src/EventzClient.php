@@ -15,6 +15,16 @@ use WpOrg\Requests\Requests;
 class EventzClient {
 
     /**
+     * Type event.
+     */
+    public const TYPE_EVENT = 'event';
+
+    /**
+     * Type organizer.
+     */
+    public const TYPE_ORGANIZER = 'organizer';
+
+    /**
      * API base URI.
      *
      * @var string
@@ -44,21 +54,111 @@ class EventzClient {
             throw new \InvalidArgumentException( 'API key is not valid.' );
         }
 
-        $this->base_uri = trim( rtrim( $base_uri, '/ \t\n\r\0\x0B' ) ); // We'll set the last slash.
+        $this->base_uri = rtrim( $base_uri, '/\\' ) . '/'; // Add trailing slash if missing.
         $this->api_key  = $api_key;
+    }
+
+    /**
+     * Search events from API.
+     * Language is required in this endpoint so we use Finnish as default.
+     *
+     * @param array  $params Search parameters.
+     * @param string $lang Language, default Finnish.
+     * @return array|false
+     */
+    public function search_events( array $params = [], string $lang = 'fi' ) {
+        $params['type']     = self::TYPE_EVENT;
+        $params['language'] = $lang;
+
+        return $this->search( $params );
+    }
+
+    /**
+     * Search organizers from API.
+     * Language is required in this endpoint so we use Finnish as default.
+     *
+     * @param array  $params Search parameters.
+     * @param string $lang Language, default Finnish.
+     * @return array|false
+     */
+    public function search_organizers( array $params = [], string $lang = 'fi' ) {
+        $params['type']     = self::TYPE_ORGANIZER;
+        $params['language'] = $lang;
+
+        return $this->search( $params );
     }
 
     /**
      * Search items from API.
      *
      * @param array $params Search parameters.
-     * @return void
+     * @return array|false
      */
-    public function search( array $params = [] ) {
+    protected function search( array $params = [] ) {
         $endpoint = 'api/public/search';
         $api_url  = $this->base_uri . $endpoint . '?' . $this->to_query_parameters( $params );
+        $body     = $this->get( $api_url );
 
-        $this->do_get_request( $api_url );
+        return $body->data->items ?? false;
+    }
+
+    /**
+     * Get categories from API.
+     * Language defaults to the site's default language.
+     *
+     * @param string $lang The language.
+     * @return array|false
+     */
+    public function get_categories( string $lang = '' ) {
+        $endpoint = 'api/public/site/categories';
+        $params   = [];
+
+        if ( ! empty( $lang ) ) {
+            $params['language'] = $lang;
+        }
+
+        $api_url = $this->base_uri . $endpoint . '?' . $this->to_query_parameters( $params );
+        $body    = $this->get( $api_url );
+
+        return $body->data->site_categories ?? false;
+    }
+
+    /**
+     * Get items from the API.
+     *
+     * @param string $api_url The URL to fetch from.
+     * @return \stdClass|false
+     */
+    public function get( string $api_url ) {
+        $body = $this->do_get_request( $api_url );
+
+        return empty( $body )
+            ? false
+            : self::decode_contents( $body );
+    }
+
+    /**
+     * Decode the API Response.
+     *
+     * @param string $body Response body.
+     *
+     * @return \stdClass
+     * @throws \JsonException If JSON Decode fails.
+     */
+    public static function decode_contents( string $body = '' ) : \stdClass {
+        $body = json_decode( $body, false, 512, JSON_THROW_ON_ERROR );
+
+        // Multiple items, like from searching.
+        if ( isset( $body->meta, $body->data ) ) {
+            return $body;
+        }
+
+        // Single item, or error message.
+        $output       = new \stdClass();
+        $output->data = $body;
+        $output->meta = [];
+
+        return $output;
     }
 
     /**
@@ -81,17 +181,26 @@ class EventzClient {
      *
      * @param string $api_url API URL to fetch from.
      * @return string|false
+     * @throws EventzException If request fails.
      */
     public function do_get_request( string $api_url = '' ) {
         if ( empty( $api_url ) || ! filter_var( $api_url, FILTER_VALIDATE_URL ) ) {
             return false;
         }
 
-        $payload = Requests::get( $api_url );
-        echo '<pre>';
-        var_dump( $payload );
-        echo '</pre>';
+        $headers = [];
+        $options = [];
 
-        return '';
+        $payload     = Requests::get( $api_url, $headers, $options );
+        $status_code = $payload->status_code;
+
+        if ( ! in_array( $status_code, [ 200, 201 ], true ) ) {
+            throw new EventzException(
+                sprintf( '%s: %s', $api_url, $payload->body ?? 'Unknown error' ),
+                $status_code
+            );
+        }
+
+        return $payload->body ?? '';
     }
 }
