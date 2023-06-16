@@ -1,0 +1,35 @@
+{
+    "name": "devgeniem/eventz-client",
+    "type": "library",
+    "require-dev": {
+        "devgeniem/geniem-rules-codesniffer": "^1.1"
+    },
+    "license": "GPL-3.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Geniem\\EventzClient\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Hermanni Piirainen",
+            "email": "hermanni.piirainen@geniem.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4|>=8.0",
+        "rmccue/requests": "^2.0",
+        "ext-json": "*"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "lint": "vendor/bin/phpcs --standard=phpcs.xml src/ -s --warning-severity=0",
+        "lint-all": "vendor/bin/phpcs --standard=phpcs.xml src/",
+        "lint-fix": "vendor/bin/phpcbf --standard=phpcs.xml --basepath=. ./src/"
+    }
+}
