@@ -11,6 +11,7 @@ use WpOrg\Requests\Requests;
  * Class EventzClient
  *
  * @package Geniem\Eventz
+ * @see https://backend.ver5.eventz.today/api/docs/ for API documentation.
  */
 class EventzClient {
 
