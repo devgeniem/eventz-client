@@ -96,10 +96,28 @@ class EventzClient {
      */
     protected function search( array $params = [] ) {
         $endpoint = 'api/public/search';
-        $api_url  = $this->base_uri . $endpoint . '?' . $this->to_query_parameters( $params );
-        $body     = $this->get( $api_url );
+        $body     = $this->get( $endpoint, $params );
 
         return $body->data->items ?? false;
+    }
+
+    /**
+     * Get single item from API.
+     * Language is required in this endpoint so we use Finnish as default.
+     *
+     * @param string $id Item ID.
+     * @param string $lang Language.
+     * @return \stdClass|false
+     */
+    public function get_item( string $id, string $lang = 'fi' ) {
+        $endpoint = "api/public/item/{$id}";
+        $params   = [
+            'language' => $lang,
+        ];
+
+        $body = $this->get( $endpoint, $params );
+
+        return $body->data ?? false;
     }
 
     /**
@@ -117,8 +135,7 @@ class EventzClient {
             $params['language'] = $lang;
         }
 
-        $api_url = $this->base_uri . $endpoint . '?' . $this->to_query_parameters( $params );
-        $body    = $this->get( $api_url );
+        $body = $this->get( $endpoint, $params );
 
         return $body->data->site_categories ?? false;
     }
@@ -126,11 +143,13 @@ class EventzClient {
     /**
      * Get items from the API.
      *
-     * @param string $api_url The URL to fetch from.
+     * @param string $endpoint The endpoint.
+     * @param array  $params The query parameters.
      * @return \stdClass|false
      */
-    public function get( string $api_url ) {
-        $body = $this->do_get_request( $api_url );
+    public function get( string $endpoint, array $params = [] ) {
+        $api_url = $this->base_uri . $endpoint . '?' . $this->to_query_parameters( $params );
+        $body    = $this->do_get_request( $api_url );
 
         return empty( $body )
             ? false
