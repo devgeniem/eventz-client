@@ -6,6 +6,7 @@
 namespace Geniem\Eventz;
 
 use WpOrg\Requests\Requests;
+use WpOrg\Requests\Response;
 
 /**
  * Class EventzClient
@@ -38,6 +39,13 @@ class EventzClient {
      * @var string
      */
     private string $api_key;
+
+    /**
+     * Last request response.
+     *
+     * @var ?Response
+     */
+    private ?Response $last_response = null;
 
     /**
      * EventzClient constructor.
@@ -158,6 +166,20 @@ class EventzClient {
     }
 
     /**
+     * Get full last response.
+     *
+     * @param string $property Property to get from the response.
+     * @return mixed The full response or one of its properties, null if no request has been made.
+     */
+    public function get_last_response( $property = '' ) {
+        if ( empty( $property ) ) {
+            return $this->last_response;
+        }
+
+        return $this->last_response->{$property} ?? null;
+    }
+
+    /**
      * Decode the API Response.
      *
      * @param string $body Response body.
@@ -211,7 +233,11 @@ class EventzClient {
         $headers = [];
         $options = [];
 
-        $payload     = Requests::get( $api_url, $headers, $options );
+        $payload = Requests::get( $api_url, $headers, $options );
+
+        // Save last response to class property.
+        $this->last_response = $payload;
+
         $status_code = $payload->status_code;
 
         if ( ! in_array( $status_code, [ 200, 201 ], true ) ) {
