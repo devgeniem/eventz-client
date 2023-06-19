@@ -166,7 +166,7 @@ class EventzClient {
     }
 
     /**
-     * Get full last response.
+     * Get full last response or one of its properties.
      *
      * @param string $property Property to get from the response.
      * @return mixed The full response or one of its properties, null if no request has been made.
