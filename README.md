@@ -29,6 +29,12 @@ $organizers = $client->search_organizers();
 
 // Get single item.
 $item = $client->get_item( '646ee4da872c77524e22722f' );
+
+// Get last response in full.
+$response = $client->get_last_response();
+
+// Get last response property ('headers' as an example).
+$response = $client->get_last_response( 'headers' );
 ```
 
 ## Changelog
