@@ -1,5 +1,6 @@
 {
     "name": "devgeniem/eventz-client",
+    "description": "Eventz API client library for PHP",
     "type": "library",
     "require-dev": {
         "devgeniem/geniem-rules-codesniffer": "^1.1"
