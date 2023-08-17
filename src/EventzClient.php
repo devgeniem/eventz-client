@@ -150,6 +150,81 @@ class EventzClient {
     }
 
     /**
+     * Get areas from API.
+     * Language defaults to the site's default language.
+     *
+     * @param string $lang The language.
+     * @return array|false
+     */
+    public function get_areas( string $lang = '' ) {
+        $endpoint = 'api/public/site/areas';
+        $params   = [];
+
+        if ( ! empty( $lang ) ) {
+            $params['language'] = $lang;
+        }
+
+        $body = $this->get( $endpoint, $params );
+
+        return $body->data->areas ?? false;
+    }
+
+    /**
+     * Get tags from API.
+     * Language defaults to the site's default language.
+     *
+     * @param string $lang The language.
+     * @return array|false
+     */
+    public function get_tags( string $lang = '' ) {
+        $endpoint = 'api/public/site/tags';
+        $params   = [];
+
+        if ( ! empty( $lang ) ) {
+            $params['language'] = $lang;
+        }
+
+        $body = $this->get( $endpoint, $params );
+
+        return $body->data->tags ?? false;
+    }
+
+    /**
+     * Get targets from API.
+     * Language defaults to the site's default language.
+     *
+     * @param string $lang The language.
+     * @return array|false
+     */
+    public function get_targets( string $lang = '' ) {
+        $endpoint = 'api/public/site/targets';
+        $params   = [];
+
+        if ( ! empty( $lang ) ) {
+            $params['language'] = $lang;
+        }
+
+        $body = $this->get( $endpoint, $params );
+        return $body->data->targets ?? false;
+    }
+
+    /**
+     * Search events by host ids from API.
+     * Language is required in this endpoint so we use Finnish as default.
+     *
+     * @param array  $params Search parameters.
+     * @param string $lang Language, default Finnish.
+     * @return array|false
+     */
+    public function search_events_by_host( array $params = [], string $lang = 'fi' ) {
+        $endpoint           = 'api/public/content-by-host';
+        $params['language'] = $lang;
+
+        $body = $this->get( $endpoint, $params );
+        return $body->data->items ?? false;
+    }
+
+    /**
      * Get items from the API.
      *
      * @param string $endpoint The endpoint.
